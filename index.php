@@ -16,12 +16,42 @@ $operations = [
 $items = [];
 $operationNumber;
 
-include('components/logicAction.php');
-include('components/shopingList.php');
-include('components/primaryOutput.php');
-include('components/userRequest.php');
-include('components/condition.php');
+function condition(): bool{
+    global $operationNumber, $operations;
+    return !array_key_exists($operationNumber, $operations);
+}
 
+function primaryOutput(): void{
+    global $items, $operations, $operationNumber;
+
+    if (count($items)) {
+        echo 'Ваш список покупок: ' . PHP_EOL;
+        shoppingList();
+    } else {
+        echo 'Ваш список покупок пуст.' . PHP_EOL;
+    }
+
+
+    echo 'Выберите операцию для выполнения: ' . PHP_EOL;
+    // Проверить, есть ли товары в списке? Если нет, то не отображать пункт про удаление товаров
+    echo implode(PHP_EOL, $operations) . PHP_EOL . '> ';
+    $operationNumber = userRequest();
+
+    if (condition()) {
+        system('cls');
+
+        echo '!!! Неизвестный номер операции, повторите попытку.' . PHP_EOL;
+    }
+}
+
+function shoppingList(): void{
+    global $items;
+    echo implode("\n", $items) . "\n";
+}
+
+function userRequest(): string{
+    return trim(fgets(STDIN));
+}
 
 do {
     system('cls');
@@ -34,15 +64,33 @@ do {
 
     switch ($operationNumber) {
         case OPERATION_ADD:
-            logicAction($operationNumber);
+            echo "Введение название товара для добавления в список: \n> ";
+            $itemName = userRequest();
+            $items[] = $itemName;
             break;
 
         case OPERATION_DELETE:
-            logicAction($operationNumber);
+            // Проверить, есть ли товары в списке? Если нет, то сказать об этом и попросить ввести другую операцию
+            echo 'Текущий список покупок:' . PHP_EOL;
+            echo 'Список покупок: ' . PHP_EOL;
+            shoppingList();
+
+            echo 'Введение название товара для удаления из списка:' . PHP_EOL . '> ';
+            $itemName = userRequest();
+
+            if (in_array($itemName, $items, true) !== false) {
+                while (($key = array_search($itemName, $items, true)) !== false) {
+                    unset($items[$key]);
+                }
+            }
             break;
 
         case OPERATION_PRINT:
-            logicAction($operationNumber);
+            echo 'Ваш список покупок: ' . PHP_EOL;
+            echo implode(PHP_EOL, $items) . PHP_EOL;
+            echo 'Всего ' . count($items) . ' позиций. '. PHP_EOL;
+            echo 'Нажмите enter для продолжения';
+            fgets(STDIN); 
             break;
     }
 
